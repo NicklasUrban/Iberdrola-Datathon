@@ -6,36 +6,38 @@ This project aims to optimize the deployment of electric vehicle (EV) charging i
 ---
 
 ## 🚀 Quick Start: Data Access
-To ensure immediate reproducibility without needing to scrape external portals, all raw and standardized datasets are mirrored in our **GCP Data Bucket**:
+To ensure immediate reproducibility without needing to scrape external portals, all raw and standardized datasets are mirrored in our **GCP Data Bucket**. 
 
-**🔗 [Cloud Data Access](https://storage.googleapis.com/iberdrola-datathon/data/)**
+You can synchronize the official standardized "Silver Layer" directly into your local `data/` directory using our sync utility:
+
+```bash
+# Synchronize standardized datasets from GCP
+python3 sync_cloud_data.py
+```
 
 > [!TIP]
-> If you are starting the repository from scratch, you **do not need to rerun** the download or standardization scripts. You can simply download the contents of the bucket into your local `data/` directory to begin analysis immediately.
+> If you are starting the repository from scratch, using `sync_cloud_data.py` is the fastest way to begin analysis. It skips the ingestion and standardization phases by fetching pre-computed results.
 
 ---
 
 ## 🛠 Project Architecture & Orchestration
 
-The project uses a modular "Medallion Architecture" driven by two specialized orchestrator scripts:
+The project uses a modular "Medallion Architecture" driven by specialized orchestrator scripts:
 
-### 1. Raw Acquisition (`download.py`)
-This orchestrator manages the ingestion of raw data from public sources and ministry portals. It hardcodes all source URLs and handles formatting (KMZ, XML, XLSX, ZIP, CSV).
+### 1. Cloud Data Sync (`sync_cloud_data.py`)
+The primary entry point for researchers. It fetches pre-processed standardized datasets from the project's cloud storage.
+- **Source**: `https://storage.googleapis.com/iberdrola-datathon/data/standardized/`
+- **Logic**: Intelligent skipping (only downloads missing files unless `force = true` in config).
+
+### 2. Raw Acquisition (`download.py`)
+Manages the ingestion of raw data from public sources and ministry portals. Use this if you want to refresh the source data from the ministries.
 - **Inputs**: Ministry Portals (MITMA, DGT, CNMC).
 - **Outputs**: `data/raw/<step_name>/`
-- **Execution**:
-  ```bash
-  python3 download.py
-  ```
 
-### 2. Tabular Standardization (`standardization.py`)
-The "Silver Layer" of the pipeline. It transforms raw, heterogeneous formats into clean, metric-projected (**EPSG:25830**) tabular datasets.
-- **Key Logic**: Advanced filtering (e.g., ultra-fast chargers only), propulsion type mapping, and spatial normalization.
+### 3. Tabular Standardization (`standardization.py`)
+The "Silver Layer" processor. It transforms raw formats into clean, metric-projected (**EPSG:25830**) tabular datasets.
+- **Key Logic**: Advanced filtering (e.g., ultra-fast >100kW only), propulsion mapping, and spatial normalization.
 - **Outputs**: `data/standardized/` (GeoParquet / Parquet).
-- **Execution**:
-  ```bash
-  python3 standardization.py
-  ```
 
 ---
 
@@ -55,7 +57,7 @@ All standardized files are stored in `data/standardized/`. These represent the h
 ---
 
 ## 📓 Research & Analysis
-Advanced analysis is performed in the `notebooks/` and legacy `scripts/` (to be refactored into the new standardization layer):
+Advanced analysis is performed in the `notebooks/` and legacy `scripts/`:
 - `analyze_charging_sites_proximity.py`: Links sites to road segments.
 - `analyze_segment_intervals.py`: Calculates distance-based gaps ("Range Anxiety").
 - `EV_forecast.ipynb`: Time-series projections to 2027.
@@ -73,7 +75,8 @@ uv sync
 ```
 
 ### 2. Configuration (`config.toml`)
-Both orchestrators are controlled via the `config.toml` file. This allows you to:
+All orchestrators are controlled via the `config.toml` file. This allows you to:
+- **`cloud_sync`**: Toggle `force` download of cloud data.
 - **`standardization_execution`**: Select specific steps to rerun.
 - **`standardization_config`**: Centralize parameters like `metric_crs`.
 - **`steps`**: Modify source paths or processing parameters without touching code.

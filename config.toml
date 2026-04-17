@@ -6,6 +6,10 @@ steps = ["all"]
 [standardization_config]
 metric_crs = "EPSG:25830"
 
+[cloud_sync]
+base_url = "https://storage.googleapis.com/iberdrola-datathon/data/standardized"
+force = false
+
 [process_execution]
 # Available steps: chargers, vehicle_registrations, gas_stations, electric_capacity, traffic, segments, proximity, gas_stations_proximity
 steps = ["electric_capacity", "traffic"]
