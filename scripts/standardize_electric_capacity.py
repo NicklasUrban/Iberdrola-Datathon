@@ -74,7 +74,8 @@ def load_and_clean_data(file_path, company_name):
 def main(
     raw_dir="data/raw/electric_capacity",
     output_path="data/standardized/electric_capacity.parquet",
-    metric_crs="EPSG:25830"
+    metric_crs="EPSG:25830",
+    **kwargs
 ):
     """
     Standardizes electric capacity data with English names and capacity in kW.

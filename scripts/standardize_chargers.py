@@ -65,7 +65,8 @@ def parse_xml(xml_path):
 def main(
     raw_path="data/raw/chargers/chargers.xml",
     output_path="data/standardized/chargers.parquet",
-    metric_crs="EPSG:25830"
+    metric_crs="EPSG:25830",
+    **kwargs
 ):
     """
     Standardizes EV chargers data:

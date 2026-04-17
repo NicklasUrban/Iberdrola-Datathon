@@ -8,7 +8,8 @@ import sys
 def main(
     raw_path="data/raw/gas_stations/gas_stations.json",
     output_path="data/standardized/gas_stations.parquet",
-    metric_crs="EPSG:25830"
+    metric_crs="EPSG:25830",
+    **kwargs
 ):
     """
     Standardizes gas stations data with English names and specific selection.

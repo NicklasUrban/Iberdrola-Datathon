@@ -7,11 +7,14 @@ import re
 import sys
 
 def main(
-    traffic_dir="data/raw/traffic/informacion_tramo",
+    raw_dir="data/raw/traffic/informacion_tramo",
     shp_path="data/raw/traffic/geometria/Geometria_tramos.shp",
     output_path="data/standardized/traffic.parquet",
-    metric_crs="EPSG:25830"
+    metric_crs="EPSG:25830",
+    **kwargs
 ):
+    # Map raw_dir to what the code uses internally
+    traffic_dir = raw_dir
     """
     Standardizes traffic data by:
     1. Merging all daily 'informacion_tramo' CSVs (Total and Short trips).

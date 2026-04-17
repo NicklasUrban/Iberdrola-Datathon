@@ -33,7 +33,8 @@ DGT_FIELDS = [
 
 def main(
     raw_dir="data/raw/vehicle_registrations",
-    output_path="data/standardized/vehicle_registrations.parquet"
+    output_path="data/standardized/vehicle_registrations.parquet",
+    **kwargs
 ):
     """
     Standardizes vehicle registrations with strict filters and propulsion mapping.

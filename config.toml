@@ -1,10 +1,10 @@
-# Iberdrola Datathon: Central Configuration File
-
-[download_execution]
-# Steps: ["all"] or list like ["roads", "traffic"]
-# Order: roads, traffic, vehicle_registrations, chargers, electric_capacity, gas_stations
+[standardization_execution]
+# Steps: ["all"] or list like ["roads", "traffic", "chargers"]
+# Order: roads, traffic, chargers, electric_capacity, vehicle_registrations, gas_stations
 steps = ["all"]
-force = false
+
+[standardization_config]
+metric_crs = "EPSG:25830"
 
 [process_execution]
 # Available steps: chargers, vehicle_registrations, gas_stations, electric_capacity, traffic, segments, proximity, gas_stations_proximity
@@ -16,11 +16,13 @@ force = true
 # ==========================================
 
 [steps.roads]
-# Acquisition details moved to download.py
+kmz_path = "data/raw/roads/roads.kmz"
+output_path = "data/standardized/roads.parquet"
 
 [steps.traffic]
 # Data sources
 raw_dir = "data/raw/traffic/informacion_tramo"
+shp_path = "data/raw/traffic/geometria/Geometria_tramos.shp"
 output_path = "data/standardized/traffic.parquet"
 depends_on = []
 

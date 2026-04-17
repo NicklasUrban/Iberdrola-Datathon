@@ -10,7 +10,8 @@ fiona.drvsupport.supported_drivers['KML'] = 'rw'
 def main(
     kmz_path="data/raw/roads/roads.kmz",
     output_path="data/standardized/roads.parquet",
-    metric_crs="EPSG:25830"
+    metric_crs="EPSG:25830",
+    **kwargs
 ):
     """
     Standardizes road backbone data from KMZ into a projected tabular format.
