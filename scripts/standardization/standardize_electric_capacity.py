@@ -101,9 +101,20 @@ def main(
 
     merged_df = pl.concat(dfs)
     
-    # Add row_id (substation + index)
+    # Add grouping to sum capacity per substation/operator site
+    print(" - Grouping and summing capacities...")
+    merged_df = merged_df.group_by(['substation', 'grid_operator']).agg([
+        pl.col('capacity_kw').sum(),
+        pl.col('company').first(),
+        pl.col('province').first(),
+        pl.col('city').first(),
+        pl.col('Coordenada UTM X').first(),
+        pl.col('Coordenada UTM Y').first()
+    ])
+    
+    # Add row_id (using provider + substation ID to ensure global uniqueness)
     merged_df = merged_df.with_columns([
-        (pl.col("substation") + "_" + pl.arange(0, pl.count()).cast(pl.Utf8)).alias("row_id")
+        (pl.col("grid_operator") + "_" + pl.col("substation")).alias("row_id")
     ])
     
     pdf = merged_df.to_pandas()

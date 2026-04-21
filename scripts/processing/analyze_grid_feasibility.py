@@ -7,7 +7,7 @@ import os
 def load_data():
     """Loads standardized electric capacity and optimized sites."""
     print("📂 Loading datasets...")
-    sites_path = "data/processed/optimized_sites.parquet"
+    sites_path = "data/processed/grid_aware_optimized_sites.parquet"
     grid_path = "data/standardized/electric_capacity.parquet"
     
     gdf_sites = gpd.read_parquet(sites_path)
@@ -42,10 +42,9 @@ def analyze_feasibility(gdf_sites, gdf_grid):
     # Mask for points with no substation within 10km
     no_grid_mask = np.isinf(dists)
     
-    # 3. Cumulative Demand per Substation
-    # Map back to substation IDs
+    # Map back to substation IDs (using the unique row_id)
     valid_indices = gdf_sites.loc[~no_grid_mask, 'substation_index'].astype(int)
-    gdf_sites.loc[~no_grid_mask, 'substation_id'] = gdf_grid.iloc[valid_indices]['substation'].values
+    gdf_sites.loc[~no_grid_mask, 'substation_id'] = gdf_grid.iloc[valid_indices]['row_id'].values
     gdf_sites.loc[~no_grid_mask, 'substation_cap_kw'] = gdf_grid.iloc[valid_indices]['capacity_kw'].values
     
     # Aggregate demand
@@ -81,9 +80,8 @@ def report(gdf_sites, sub_loads, gdf_grid):
     for status, count in stats.items():
         print(f"  - {status}: {count}")
         
-    print("\n⚠️ TOP 10 OVERLOADED SUBSTATIONS:")
     # Need to merge with original capacity for the top 10 view
-    overloaded = sub_loads.merge(gdf_grid[['substation', 'capacity_kw']].drop_duplicates(), left_on='substation_id', right_on='substation')
+    overloaded = sub_loads.merge(gdf_grid[['row_id', 'capacity_kw']].drop_duplicates(), left_on='substation_id', right_on='row_id')
     overloaded['deficit_kw'] = overloaded['total_assigned_demand_kw'] - overloaded['capacity_kw']
     overloaded = overloaded[overloaded.deficit_kw > 0].sort_values('deficit_kw', ascending=False)
     

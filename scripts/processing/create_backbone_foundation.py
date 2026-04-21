@@ -204,7 +204,7 @@ def assign_grid_capacity(gdf_points, gdf_capacity):
         
     gdf_result = gpd.sjoin_nearest(
         gdf_points,
-        gdf_capacity[['capacity_kw', 'geometry']],
+        gdf_capacity[['capacity_kw', 'row_id', 'geometry']],
         how='left',
         distance_col='dist_substation_m'
     )
@@ -212,6 +212,10 @@ def assign_grid_capacity(gdf_points, gdf_capacity):
     gdf_result = gdf_result.drop_duplicates(subset=['point_id'])
     if 'index_right' in gdf_result.columns:
         gdf_result = gdf_result.drop(columns=['index_right'])
+
+    # Rename row_id to substation_id for clarity in the foundation dataset
+    if 'row_id' in gdf_result.columns:
+        gdf_result = gdf_result.rename(columns={'row_id': 'substation_id'})
         
     return gdf_result
 
