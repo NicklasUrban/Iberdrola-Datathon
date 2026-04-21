@@ -22,8 +22,6 @@ PENALTY_COVERAGE = 1e6
 PENALTY_SUPPLY = 1e4
 PENALTY_GRID_UPGRADE = 1e2 # Lower than coverage -> prefers to upgrade grid than leave road gaps
 
-SAMPLING_STEP = 25 # 5km intervals for speed
-
 def load_data():
     """Loads all necessary datasets for grid-aware optimization."""
     print("📂 Loading datasets...")
@@ -94,7 +92,7 @@ def build_road_constraints_chunk(chunk_start, chunk_end, neighbors_chunk, demand
 
 def solve_grid_aware_optimization(gdf_backbone, df_cand, gdf_grid):
     """Unified solver with Grid Capacity constraints and Upgrade Slacks."""
-    gdf_sampled = gdf_backbone.iloc[::SAMPLING_STEP].copy()
+    gdf_sampled = gdf_backbone.copy()
     M, B, K = len(df_cand), len(gdf_sampled), len(gdf_grid)
     
     print(f"🧠 Formulating Grid-Aware optimization (Vars: {2*M + 2*B + K})...")
@@ -177,9 +175,19 @@ def solve_grid_aware_optimization(gdf_backbone, df_cand, gdf_grid):
     res = milp(c=c, bounds=Bounds(lb, ub), constraints=LinearConstraint(A, c_lb, c_ub), integrality=integrality)
     print(f"   Optimization Successful! (Time: {time.time()-t0:.2f}s)")
     
-    # 5. Extract results
-    df_cand['is_open'] = (res.x[:M] > 1e-5).astype(int)
-    df_cand['final_n'] = np.ceil(res.x[M:2*M]).astype(int)
+    # 5. Extract results with strict Min Charger enforcement
+    is_open = (res.x[:M] > 1e-5)
+    n_relaxed = res.x[M:2*M]
+    
+    df_cand['is_open'] = is_open.astype(int)
+    
+    # Smart rounding: If open, at least 4 chargers OR initial count
+    df_cand['final_n'] = np.where(
+        is_open,
+        np.maximum(df_cand['initial_n'], np.maximum(4, np.ceil(n_relaxed))),
+        df_cand['initial_n']
+    ).astype(int)
+    
     df_cand['added_chargers'] = df_cand['final_n'] - df_cand['initial_n']
     
     # Extract Grid Slack
