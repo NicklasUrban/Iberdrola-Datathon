@@ -77,7 +77,7 @@ def build_road_constraints_chunk(chunk_start, chunk_end, neighbors_chunk, demand
         rows.append(row_sup); cols.append(ss_idx); vals.append(1); c_lb.append(demands_chunk[i]); c_ub.append(np.inf)
     return rows, cols, vals, c_lb, c_ub
 
-def solve_grid_aware_optimization(gdf_backbone, df_cand, gdf_grid, ev_traffic_pct, need_charge_pct, coverage_threshold_m, substation_threshold_m, max_chargers_per_site, sessions_per_charger, power_per_charger_kw, penalty_coverage, penalty_supply, penalty_grid_upgrade):
+def solve_grid_aware_optimization(gdf_backbone, df_cand, gdf_grid, ev_traffic_pct, need_charge_pct, coverage_threshold_m, substation_threshold_m, max_chargers_per_site, sessions_per_charger, power_per_charger_kw, penalty_coverage, penalty_supply, penalty_grid_upgrade, random_seed=42):
     """Unified solver with Grid Capacity constraints and Upgrade Slacks."""
     gdf_sampled = gdf_backbone.copy()
     M, B, K = len(df_cand), len(gdf_sampled), len(gdf_grid)
@@ -169,7 +169,13 @@ def solve_grid_aware_optimization(gdf_backbone, df_cand, gdf_grid, ev_traffic_pc
     
     print("🚀 Solving Grid-Aware Linear Relaxation...")
     t0 = time.time()
-    res = milp(c=c, bounds=Bounds(lb, ub), constraints=LinearConstraint(A, c_lb, c_ub), integrality=integrality)
+    res = milp(
+        c=c, 
+        bounds=Bounds(lb, ub), 
+        constraints=LinearConstraint(A, c_lb, c_ub), 
+        integrality=integrality,
+        options={'random_seed': random_seed}
+    )
     print(f"   Optimization Successful! (Time: {time.time()-t0:.2f}s)")
     
     # 5. Extract results with strict Min Charger enforcement
@@ -226,7 +232,8 @@ def main():
         'power_per_charger_kw': 150,
         'penalty_coverage': 1e6,
         'penalty_supply': 1e4,
-        'penalty_grid_upgrade': 1e2
+        'penalty_grid_upgrade': 1e2,
+        'random_seed': 42
     }
 
     gdf_backbone, gdf_chargers, gdf_gas, gdf_grid = load_data()
@@ -251,7 +258,8 @@ def main():
         power_per_charger_kw=config['power_per_charger_kw'],
         penalty_coverage=config['penalty_coverage'],
         penalty_supply=config['penalty_supply'],
-        penalty_grid_upgrade=config['penalty_grid_upgrade']
+        penalty_grid_upgrade=config['penalty_grid_upgrade'],
+        random_seed=config['random_seed']
     )
     
     report(df_res, grid_slacks)
