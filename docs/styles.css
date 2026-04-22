@@ -1,0 +1,222 @@
+:root {
+    --ie-blue: #002B5C;
+    --ie-blue-light: #004080;
+    --ib-green: #82B300;
+    --ib-green-glow: rgba(130, 179, 0, 0.2);
+    --bg-light: #f5f7fa; /* Pale background */
+    --bg-card: #ffffff; /* White background for the sidebar */
+    --text-primary: #1a202c; /* Dark text for contrast */
+    --text-secondary: #4a5568;
+    --border-color: #e2e8f0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-primary);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 340px;
+    background-color: var(--bg-card);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    z-index: 10;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05); /* Lighter shadow for light theme */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+    background: rgba(0, 43, 92, 0.03); /* Subtle blue tint */
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.logo {
+    max-height: 40px;
+    object-fit: contain;
+}
+
+.divider {
+    width: 1px;
+    height: 30px;
+    background-color: var(--border-color);
+}
+
+.sidebar-header {
+    margin-bottom: 40px;
+}
+
+.sidebar-header h1 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ie-blue); /* Used IE Blue for the title to make it pop */
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-header p {
+    font-size: 0.9rem;
+    color: var(--ib-green);
+    font-weight: 600;
+}
+
+/* Tab Buttons */
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+}
+
+.tab-button {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.tab-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+}
+
+.tab-button:hover {
+    background-color: rgba(0, 43, 92, 0.03);
+    color: var(--ie-blue);
+    border-color: var(--ie-blue-light);
+    transform: translateX(4px);
+}
+
+.tab-button.active {
+    background: linear-gradient(135deg, var(--ie-blue), var(--ie-blue-light));
+    color: white;
+    border-color: var(--ie-blue);
+    box-shadow: 0 4px 15px rgba(0, 43, 92, 0.2); /* Lighter shadow */
+}
+
+.tab-button.active .tab-icon {
+    /* Optional: You can filter the emoji or let it remain */
+}
+
+/* Add a subtle green accent to the active tab */
+.tab-button.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 4px;
+    background-color: var(--ib-green);
+    border-radius: 0 4px 4px 0;
+}
+
+.tab-button {
+    position: relative; /* For the ::before pseudo-element */
+    overflow: hidden;
+}
+
+.sidebar-footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Main Content Styling */
+.main-content {
+    flex-grow: 1;
+    position: relative;
+    background-color: var(--bg-light);
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: var(--bg-light);
+    /* Adding a subtle fade-in animation for map loads */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .tabs {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .tab-button {
+        flex: 1 1 calc(50% - 6px);
+        padding: 12px;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .tab-icon {
+        display: none;
+    }
+    
+    .main-content {
+        height: calc(100vh - 250px);
+    }
+}

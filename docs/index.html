@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Iberdrola Datathon: EV Infrastructure Optimizer</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="assets/iberdrola_logo.svg" alt="Iberdrola Logo" class="logo">
+                <div class="divider"></div>
+                <img src="assets/ie_logo.svg" alt="IE University Logo" class="logo ie-logo">
+            </div>
+            
+            <div class="sidebar-header">
+                <h1>DESIGNING TOMORROW'S CHARGING NETWORK</h1>
+                <p>Iberdrola - IE Sustainability Datathon</p>
+            </div>
+
+            <nav class="tabs">
+                <button class="tab-button active" data-target="map1">
+                    <span class="tab-icon">📍</span> Current Stations
+                </button>
+                <button class="tab-button" data-target="map2">
+                    <span class="tab-icon">📊</span> Pre-Optimization Demand
+                </button>
+                <button class="tab-button" data-target="map3">
+                    <span class="tab-icon">⚡</span> Proposed Expansion
+                </button>
+                <button class="tab-button" data-target="map4">
+                    <span class="tab-icon">✅</span> Post-Optimization Demand
+                </button>
+                <button class="tab-button" data-target="map5">
+                    <span class="tab-icon">📋</span> Proposed Data Table
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Iberdrola Datathon &copy; 2026<br>IE SciTech School</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="map-container">
+                <iframe id="map-frame" src="maps/map_1_current_stations.html" frameborder="0"></iframe>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
