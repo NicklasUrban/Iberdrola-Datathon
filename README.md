@@ -1,33 +1,34 @@
 # Iberdrola Datathon 2026: Route to Electrification of Mobility
 
 ## Project Overview
-This project aims to optimize the deployment of electric vehicle (EV) charging infrastructure across Spain's **interurban road network**. The objective is to identify the most strategic locations for high-power charging stations by balancing mobility demand, 2027 projection scenarios, and the physical constraints of the electrical distribution grid.
+This project optimizes the deployment of electric vehicle (EV) charging infrastructure across Spain's **interurban road network**. By balancing mobility demand projections for 2027 with the physical constraints of the electrical distribution grid, we identify strategic locations for high-power charging stations.
 
 ---
 
----
+## 📂 Repository Structure
 
-## 📂 Project Structure
-
-The repository is organized into a sequential pipeline. All core logic and orchestrators are located in the `scripts/` directory, while interactive analysis is done in `notebooks/`.
+The project is organized into a modular pipeline where core logic resides in `scripts/` and the master analysis is conducted in a centralized notebook.
 
 ```text
 / (Root)
-├── config.toml               # Single source of truth for all parameters
-├── notebooks/                # Analytical and visualization tools
-│   ├── 01_forecast.ipynb     # EV growth projections
-│   └── 02_backbone_analysis.ipynb
+├── config.toml               # Central configuration & parameters
+├── notebooks/                # Analysis & Research
+│   ├── Iberdrola-Datathon.ipynb  # MASTER STUDY: End-to-end analysis
+│   └── archive/              # Experimental/Legacy notebooks
 └── scripts/
     ├── 01_acquisition.py      # RAW layer ingestion
     ├── 02_standardization.py  # SILVER layer transformation
-    ├── 03_processing.py       # GOLD layer foundation
-    ├── sync_cloud.py          # Data mirror utility
-    └── archive/               # Superseded legacy scripts
+    ├── 03_processing.py       # GOLD layer foundation orchestrator
+    ├── sync_cloud.py          # Multi-layer data synchronization
+    ├── processing/            # Core analytical modules
+    │   ├── create_backbone_foundation.py
+    │   └── optimize_grid_aware_placement.py
+    └── archive/               # Legacy scripts & experiments
 ```
 
-## 🚀 Quick Start: Data Access
+## 🚀 Quick Start: Data Access & Reproducibility
 
-To ensure immediate reproducibility, all standardized datasets are mirrored in our **GCP Data Bucket**. You can synchronize the official "Silver Layer" directly using:
+To ensure immediate reproducibility, all **Raw** and **Standardized (Silver)** datasets are mirrored in our **GCP Data Bucket**. You can synchronize the entire project foundation without running the initial ingestion scripts:
 
 ```bash
 # Sync standardized datasets from cloud
@@ -38,28 +39,64 @@ python3 scripts/sync_cloud.py
 
 ## 🧪 Pipeline Orchestration
 
-The project follows a modular "Medallion Architecture" driven by a sequential pipeline:
+The project follows a "Medallion Architecture" where data is refined through clear stages:
 
-### 1. Ingestion (`scripts/01_acquisition.py`)
-Manages data fetching from ministry portals (MITMA, DGT, CNMC).
-- **Outputs**: `data/raw/`
+### 1. Ingestion & Standardization
+- **Acquisition**: Fetches data from ministry portals (MITMA, DGT, CNMC).
+- **Standardization**: Normalizes coordinate systems (**EPSG:25830**) and file formats (Parquet).
 
-### 2. Standardization (`scripts/02_standardization.py`)
-Transforms raw files into clean, metric-projected (**EPSG:25830**) tabular datasets.
-- **Outputs**: `data/standardized/` (Parquet)
+### 📈 2. Demand Forecasting
+Before spatial analysis, we project the future EV landscape using time-series modeling:
+- **Model**: Employs **Auto-ARIMA** and **SARIMAX** with seasonal components (m=12).
+- **Scope**: Forecasts both EV and Non-EV registrations up to **December 2027**.
+- **Key Metric**: Calculates the **EV Penetration Ratio** (~13.9% for 2027), which serves as a global demand multiplier for the optimization engine.
 
-### 3. Processing (`scripts/03_processing.py`)
-Consolidates all layers into the final analytical backbone foundation.
-- **Outputs**: `data/processed/`
+### 🦴 3. The Backbone Foundation
+The foundation engine (`create_backbone_foundation.py`) consolidates spatial and traffic signals into a discrete point-based network:
+- **Discretization**: Interurban roads are sampled every **200m** into a discrete point-based network for high-resolution analysis.
+- **Traffic Mapping**: Projects AADT (Average Annual Daily Traffic) metrics onto points using a **50m buffer** (to handle GPS inaccuracies and dual-carriageway geometries). We apply a **longitudinal persistence filter** (segment must match at least two adjacent points) to eliminate noise from overpasses and bridge intersections.
+- **Infrastructure Proximity**: Calculates the distance to the nearest existing high-power chargers (>100kW) and gas stations.
+- **Grid Mapping**: Links every road point to its nearest high-voltage substation capacity within a **10km feasible connection radius**.
+
+### ⚡ 4. Grid-Aware Optimization
+The final deployment strategy is generated by `optimize_grid_aware_placement.py`. It uses **Mixed-Integer Linear Programming (MILP)** to solve the facility location problem under the following constraints:
+- **Coverage**: Ensures every backbone road point is within **30km** of an ultra-fast station. This aligns with the **EU AFIR Regulation** requiring no more than 60km between charging hubs (30km radius from each site satisfies the 60km gap rule).
+- **Supply & Demand**: Station capacity must meet projected 2027 demand:
+    - `EV_Demand = Total_Traffic * EV_2027_Penetration * Medium_Distance_Ratio`.
+    - **EV 2027 Penetration**: Derived from the SARIMAX registration forecast.
+    - **Medium Distance Ratio**: Focuses on interurban traffic that realistically requires en-route charging.
+- **Throughput Capacity**: Each charger is assumed to handle **24 sessions/day** (based on a 1-hour turnover for a 20%-80% ultra-fast charge).
+- **Scale Constraints**: Sites are capped at **30 chargers** to reflect realistic physical infrastructure limits.
+- **Grid Coupling**: Total power demand (**150kW per charger**) is balanced against regional substation capacity.
+- **Cost Minimization**: Prioritizes upgrading existing infrastructure (Gas Stations/Current chargers) and uses a **Penalty Hierarchy** (`Coverage > Supply > Grid Upgrade`) to favor network connectivity over reinforcement CAPEX.
 
 ---
 
 ## 📓 Research & Analysis
 
-Interactive analysis is performed via Jupyter Notebooks. Both notebooks include **automated synchronization**, allowing you to **fast-track the analysis** by bypassing the manual execution of the acquisition and standardization scripts.
+The **[Iberdrola-Datathon.ipynb](notebooks/Iberdrola-Datathon.ipynb)** is the central analytical workspace. It covers the full study after the standardization phase:
 
-- **[01_forecast.ipynb](file:///Users/juanjose/Library/CloudStorage/GoogleDrive-jj.rincon@student.ie.edu/My%20Drive/Iberdrola%20Datathon/notebooks/01_forecast.ipynb)**: Time-series analysis and forecasting of EV registrations to 2027.
-- **[02_backbone_analysis.ipynb](file:///Users/juanjose/Library/CloudStorage/GoogleDrive-jj.rincon@student.ie.edu/My%20Drive/Iberdrola%20Datathon/notebooks/02_backbone_analysis.ipynb)**: Spatial analysis, discretization, and infrastructure gap evaluation.
+1.  **EV Forecast**: Long-term projections of vehicle registrations to 2027.
+    - *Methodology Source*: Adapted from the [datos.gob.es Lab](https://datos.gob.es/es/conocimiento/ruta-la-electrificacion-descifrando-el-crecimiento-del-vehiculo-electrico-en-espana) study.
+    - *Original Code*: [Colab Notebook Reference](https://colab.research.google.com/github/Admindatosgobes/Laboratorio-de-Datos/blob/main/Data%20Science/Ruta%20a%20la%20electrificación%20de%20la%20Movilidad/Codigo/Notebook.ipynb).
+2.  **Backbone Synthesis**: Generating the discrete foundation.
+3.  **Optimization**: Solving the grid-aware placement and visualizing results.
+
+---
+
+### 📊 Data Catalog & Sources
+The foundation of this study relies on official datasets from Spanish government agencies and utility providers:
+
+| Layer | Source / Origin | Official Portal / UI Link |
+| :--- | :--- | :--- |
+| **Road Network** | MITMA (Hermes) | [Red de Interés General](https://hermes.tragsatec.es/catalogo/es/dataset/carreteras-de-la-red-de-transporte-de-interes-general16) |
+| **Traffic Flow** | MITMA OpenData | [Movilidad Big Data](https://www.transportes.gob.es/ministerio/proyectos-singulares/estudios-de-movilidad-con-big-data/opendata-movilidad) |
+| **EV Chargers** | DGT / NAP | [Puntos de Recarga Eléctrica](https://nap.dgt.es/dataset/puntos-de-recarga-electrica-para-vehiculos) |
+| **Vehicles** | DGT | [Microdatos de Matriculaciones](https://www.dgt.es/menusecundario/dgt-en-cifras/dgt-en-cifras-resultados/dgt-en-cifras-detalle/Microdatos-de-Matriculaciones-de-Vehiculos-mensual/) |
+| **Gas Stations** | MITECO | [Geoportal Gasolineras](https://geoportalgasolineras.es/geoportal-instalaciones/Inicio) |
+| **Grid Capacity** | Iberdrola | [i-DE Mapa de Capacidad](https://www.i-de.es/conexion-red-electrica/suministro-electrico/mapa-capacidad-consumo) |
+| **Grid Capacity** | Endesa | [e-distribución Nodos](https://www.edistribucion.com/es/red-electrica/nodos-capacidad-red/capacidad-generacion.html) |
+| **Grid Capacity** | Viesgo | [Mapa Interactivo Viesgo](https://www.viesgodistribucion.com/mapa-interactivo-de-la-red) |
 
 ---
 
@@ -74,11 +111,14 @@ uv sync
 ```
 
 ### 2. Configuration (`config.toml`)
-All orchestrators are controlled via the `config.toml` file. You can toggle steps, modify buffer radii, or change sampling intervals without touching code.
+Modify the `config.toml` to adjust core parameters such as:
+- `sampling_interval_m`: 200m by default.
+- `coverage_threshold_m`: 30km for station coverage.
+- `penalty_grid_upgrade`: Weight for discouraging expensive substation reinforcements.
 
 ---
 
-## 📅 Final Deliverables (March 2026 Strategy)
+## 📅 Final Deliverables (March 2027 Strategy)
 - **KPI Scorecard**: Global impact metrics of the proposed station network.
 - **Optimal Deployment Map**: Coordinates and charger counts for 2027 readiness.
 - **Grid Strategy**: Roadmap for electrical infrastructure reinforcements.
